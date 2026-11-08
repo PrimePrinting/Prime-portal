@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.data.model.DeliveryEntity
 import com.example.data.model.DeliveryStatus
 
@@ -20,46 +21,71 @@ import com.example.data.model.DeliveryStatus
 @Composable
 fun DeliveriesScreen(
     deliveries: List<DeliveryEntity>,
-    onTrackDelivery: (DeliveryEntity) -> Unit
+    onTrackDelivery: (DeliveryEntity) -> Unit,
+    onAdvanceDelivery: (DeliveryEntity) -> Unit,
+    onSimulateDeliveryNotification: () -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .testTag("deliveries_screen")
     ) {
+        // Compact Header
         Surface(
             color = MaterialTheme.colorScheme.surface,
-            shadowElevation = 2.dp
+            shadowElevation = 1.dp
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Delivery Notifications & Tracking",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Receive live dispatch notifications and track active logistics shipments in real time.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Deliveries & Live Tracking",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Real-time dispatch & arrival notifications",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    FilledTonalButton(
+                        onClick = onSimulateDeliveryNotification,
+                        shape = RoundedCornerShape(8.dp),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                        modifier = Modifier
+                            .height(32.dp)
+                            .testTag("simulate_delivery_notif_button")
+                    ) {
+                        Icon(Icons.Default.Bolt, contentDescription = null, modifier = Modifier.size(14.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Test Alert", style = MaterialTheme.typography.labelSmall)
+                    }
+                }
             }
         }
 
         LazyColumn(
             modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
+            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             if (deliveries.isEmpty()) {
                 item {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(200.dp),
+                            .height(180.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             "No active or past deliveries found.",
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -67,31 +93,32 @@ fun DeliveriesScreen(
             } else {
                 items(deliveries) { delivery ->
                     Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 6.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
+                        Column(modifier = Modifier.padding(12.dp)) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Column {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
                                         "Order ${delivery.orderId}",
                                         fontWeight = FontWeight.Bold,
-                                        style = MaterialTheme.typography.titleMedium
+                                        style = MaterialTheme.typography.bodyLarge
                                     )
+                                    Spacer(modifier = Modifier.width(6.dp))
                                     Text(
-                                        "Tracking No: ${delivery.trackingNumber}",
-                                        style = MaterialTheme.typography.bodySmall,
+                                        "#${delivery.trackingNumber}",
+                                        style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                                 Surface(
-                                    shape = RoundedCornerShape(8.dp),
+                                    shape = RoundedCornerShape(6.dp),
                                     color = when (delivery.status) {
                                         DeliveryStatus.DELIVERED -> MaterialTheme.colorScheme.tertiaryContainer
                                         DeliveryStatus.OUT_FOR_DELIVERY -> MaterialTheme.colorScheme.primaryContainer
@@ -102,7 +129,8 @@ fun DeliveriesScreen(
                                         delivery.status.name.replace("_", " "),
                                         style = MaterialTheme.typography.labelSmall,
                                         fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        fontSize = 10.sp,
                                         color = when (delivery.status) {
                                             DeliveryStatus.DELIVERED -> MaterialTheme.colorScheme.onTertiaryContainer
                                             DeliveryStatus.OUT_FOR_DELIVERY -> MaterialTheme.colorScheme.onPrimaryContainer
@@ -112,67 +140,91 @@ fun DeliveriesScreen(
                                 }
                             }
 
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(6.dp))
 
                             // Driver info summary
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 Icon(
                                     Icons.Default.Person,
                                     contentDescription = null,
-                                    modifier = Modifier.size(18.dp),
+                                    modifier = Modifier.size(15.dp),
                                     tint = MaterialTheme.colorScheme.primary
                                 )
-                                Spacer(modifier = Modifier.width(6.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
                                 Text(
-                                    "Driver: ${delivery.driverName} (${delivery.vehicleNo})",
-                                    style = MaterialTheme.typography.bodyMedium
+                                    "${delivery.driverName} (${delivery.vehicleNo})",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Medium
                                 )
-                            }
-
-                            Spacer(modifier = Modifier.height(4.dp))
-
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Spacer(modifier = Modifier.width(10.dp))
                                 Icon(
                                     Icons.Default.Place,
                                     contentDescription = null,
-                                    modifier = Modifier.size(18.dp),
+                                    modifier = Modifier.size(15.dp),
                                     tint = MaterialTheme.colorScheme.primary
                                 )
-                                Spacer(modifier = Modifier.width(6.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
                                 Text(
                                     delivery.deliveryAddress,
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines = 1
+                                    maxLines = 1,
+                                    modifier = Modifier.weight(1f)
                                 )
                             }
 
-                            Spacer(modifier = Modifier.height(12.dp))
-                            HorizontalDivider()
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                            Spacer(modifier = Modifier.height(8.dp))
 
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Column {
-                                    Text("Estimated Arrival", style = MaterialTheme.typography.labelSmall)
+                                Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        delivery.estimatedArrival,
-                                        fontWeight = FontWeight.Bold,
-                                        style = MaterialTheme.typography.bodyMedium,
+                                        "ETA: ${delivery.estimatedArrival}",
+                                        fontWeight = FontWeight.SemiBold,
+                                        style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.primary
                                     )
                                 }
 
-                                Button(
-                                    onClick = { onTrackDelivery(delivery) },
-                                    shape = RoundedCornerShape(8.dp)
-                                ) {
-                                    Icon(Icons.Default.LocationOn, contentDescription = null, modifier = Modifier.size(16.dp))
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Live Tracking")
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    OutlinedButton(
+                                        onClick = { onAdvanceDelivery(delivery) },
+                                        shape = RoundedCornerShape(6.dp),
+                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                        modifier = Modifier.height(30.dp)
+                                    ) {
+                                        Icon(Icons.Default.FastForward, contentDescription = null, modifier = Modifier.size(13.dp))
+                                        Spacer(modifier = Modifier.width(3.dp))
+                                        Text(
+                                            when (delivery.status) {
+                                                DeliveryStatus.PROCESSING -> "Ship"
+                                                DeliveryStatus.SHIPPED -> "Out for Delivery"
+                                                DeliveryStatus.OUT_FOR_DELIVERY -> "Deliver"
+                                                DeliveryStatus.DELIVERED -> "Reset"
+                                            },
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontSize = 11.sp
+                                        )
+                                    }
+
+                                    Button(
+                                        onClick = { onTrackDelivery(delivery) },
+                                        shape = RoundedCornerShape(6.dp),
+                                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                                        modifier = Modifier.height(30.dp)
+                                    ) {
+                                        Icon(Icons.Default.LocationOn, contentDescription = null, modifier = Modifier.size(13.dp))
+                                        Spacer(modifier = Modifier.width(3.dp))
+                                        Text("Track", style = MaterialTheme.typography.labelSmall, fontSize = 11.sp)
+                                    }
                                 }
                             }
                         }

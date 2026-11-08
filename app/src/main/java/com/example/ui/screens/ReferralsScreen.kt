@@ -1,6 +1,5 @@
 package com.example.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -9,7 +8,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,6 +17,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.data.model.ReferralEntity
 import com.example.data.model.ReferralStatus
 import com.example.ui.CustomerInfo
@@ -39,8 +38,8 @@ fun ReferralsScreen(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onOpenInviteSheet,
-                icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                text = { Text("Refer a Business") },
+                icon = { Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                text = { Text("Refer Business", style = MaterialTheme.typography.labelMedium) },
                 modifier = Modifier.testTag("refer_business_fab")
             )
         }
@@ -53,99 +52,134 @@ fun ReferralsScreen(
         ) {
             Surface(
                 color = MaterialTheme.colorScheme.surface,
-                shadowElevation = 2.dp
+                shadowElevation = 1.dp
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Default.CardGiftcard,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(28.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Customer Referral Partner Program",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Earn up to \$150 in account statement credit for every referred company that completes an order.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "Referral Partner Program",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "Earn \$150 credit for every qualified business referral",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = onOpenInviteSheet,
+                            shape = RoundedCornerShape(8.dp),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                            modifier = Modifier.height(30.dp)
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(14.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Invite", style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(6.dp))
 
                     // Stats row
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Card(
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.6f),
                             modifier = Modifier.weight(1f)
                         ) {
-                            Column(modifier = Modifier.padding(12.dp)) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 Text("Earned Credit", style = MaterialTheme.typography.labelSmall)
                                 Text(
                                     "\$${String.format("%.2f", totalEarned)}",
                                     fontWeight = FontWeight.Bold,
-                                    style = MaterialTheme.typography.titleMedium,
+                                    style = MaterialTheme.typography.labelLarge,
                                     color = MaterialTheme.colorScheme.onTertiaryContainer
                                 )
                             }
                         }
 
-                        Card(
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
                             modifier = Modifier.weight(1f)
                         ) {
-                            Column(modifier = Modifier.padding(12.dp)) {
-                                Text("Pending Referrals", style = MaterialTheme.typography.labelSmall)
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("Pending", style = MaterialTheme.typography.labelSmall)
                                 Text(
                                     "$pendingInvites",
                                     fontWeight = FontWeight.Bold,
-                                    style = MaterialTheme.typography.titleMedium,
+                                    style = MaterialTheme.typography.labelLarge,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                             }
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
 
-                    // Referral Link Box
-                    OutlinedTextField(
-                        value = referralLink,
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Your Unique Share Link") },
-                        trailingIcon = {
-                            IconButton(onClick = {
-                                clipboardManager.setText(AnnotatedString(referralLink))
-                            }) {
-                                Icon(Icons.Default.ContentCopy, contentDescription = "Copy")
+                    // Compact Referral Link Bar
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 10.dp, vertical = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                referralLink,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                modifier = Modifier.weight(1f),
+                                fontSize = 11.sp
+                            )
+                            IconButton(
+                                onClick = {
+                                    clipboardManager.setText(AnnotatedString(referralLink))
+                                },
+                                modifier = Modifier.size(28.dp)
+                            ) {
+                                Icon(Icons.Default.ContentCopy, contentDescription = "Copy", modifier = Modifier.size(16.dp))
                             }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
+                        }
+                    }
                 }
             }
 
             LazyColumn(
                 modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 item {
                     Text(
-                        "Referred Partners History",
+                        "Referred Partners (${referrals.size})",
                         fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(vertical = 8.dp)
+                        style = MaterialTheme.typography.labelLarge,
+                        modifier = Modifier.padding(vertical = 2.dp)
                     )
                 }
 
@@ -158,7 +192,8 @@ fun ReferralsScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                "No referrals sent yet. Tap below to refer a contact!",
+                                "No referrals sent yet. Tap above to invite a business contact!",
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -166,15 +201,15 @@ fun ReferralsScreen(
                 } else {
                     items(referrals) { referral ->
                         Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                         ) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(16.dp),
+                                    .padding(horizontal = 12.dp, vertical = 10.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -182,23 +217,25 @@ fun ReferralsScreen(
                                     Text(
                                         referral.refereeName,
                                         fontWeight = FontWeight.Bold,
-                                        style = MaterialTheme.typography.bodyLarge
+                                        style = MaterialTheme.typography.bodyMedium
                                     )
                                     Text(
-                                        "${referral.refereeCompany} | ${referral.email}",
+                                        "${referral.refereeCompany} • ${referral.email}",
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1
                                     )
                                     Text(
                                         "Invited: ${referral.dateInvited}",
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontSize = 10.sp
                                     )
                                 }
 
                                 Column(horizontalAlignment = Alignment.End) {
                                     Surface(
-                                        shape = RoundedCornerShape(8.dp),
+                                        shape = RoundedCornerShape(6.dp),
                                         color = when (referral.status) {
                                             ReferralStatus.COMPLETED -> MaterialTheme.colorScheme.tertiaryContainer
                                             ReferralStatus.SIGNED_UP -> MaterialTheme.colorScheme.primaryContainer
@@ -206,10 +243,11 @@ fun ReferralsScreen(
                                         }
                                     ) {
                                         Text(
-                                            referral.status.name,
+                                            referral.status.name.replace("_", " "),
                                             style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold,
-                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                            fontSize = 10.sp,
                                             color = when (referral.status) {
                                                 ReferralStatus.COMPLETED -> MaterialTheme.colorScheme.onTertiaryContainer
                                                 ReferralStatus.SIGNED_UP -> MaterialTheme.colorScheme.onPrimaryContainer
@@ -217,11 +255,11 @@ fun ReferralsScreen(
                                             }
                                         )
                                     }
-                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Spacer(modifier = Modifier.height(2.dp))
                                     Text(
-                                        "+\$${String.format("%.0f", referral.rewardAmount)} Credit",
+                                        "+\$${String.format("%.2f", referral.rewardAmount)}",
                                         fontWeight = FontWeight.Bold,
-                                        style = MaterialTheme.typography.bodyMedium,
+                                        style = MaterialTheme.typography.labelLarge,
                                         color = MaterialTheme.colorScheme.primary
                                     )
                                 }

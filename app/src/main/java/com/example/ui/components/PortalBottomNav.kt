@@ -23,7 +23,9 @@ enum class PortalScreen(
     QUOTES("quotes", "Quotes", Icons.Filled.Assignment, Icons.Outlined.Assignment),
     REFERRALS("referrals", "Referrals", Icons.Filled.CardGiftcard, Icons.Outlined.CardGiftcard),
     STATEMENTS("statements", "Statements", Icons.Filled.AccountBalanceWallet, Icons.Outlined.AccountBalanceWallet),
-    PROFILE("profile", "Profile", Icons.Filled.Person, Icons.Outlined.Person)
+    PROFILE("profile", "Profile", Icons.Filled.Person, Icons.Outlined.Person),
+    VERIFICATION("verification", "Verify", Icons.Filled.QrCodeScanner, Icons.Outlined.QrCodeScanner),
+    UPDATES("updates", "Updates", Icons.Filled.SystemUpdate, Icons.Outlined.SystemUpdate)
 }
 
 @Composable

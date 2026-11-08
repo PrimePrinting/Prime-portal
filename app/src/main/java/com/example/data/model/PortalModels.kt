@@ -133,3 +133,39 @@ data class NotificationEntity(
     val isRead: Boolean = false,
     val actionTargetId: String? = null
 )
+
+enum class DocumentVerificationType {
+    INVOICE, DELIVERY_SLIP, QUOTATION, PAYMENT_RECEIPT, STATEMENT, UNKNOWN
+}
+
+@Entity(tableName = "document_verifications")
+data class VerificationRecordEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val documentType: DocumentVerificationType,
+    val documentId: String,
+    val documentTitle: String,
+    val isAuthentic: Boolean,
+    val issuer: String,
+    val issueDate: String,
+    val verifiedTimestamp: String,
+    val summaryDetails: String,
+    val statusText: String,
+    val rawQrPayload: String
+)
+
+data class DocumentVerificationResult(
+    val isAuthentic: Boolean,
+    val documentType: DocumentVerificationType,
+    val documentId: String,
+    val documentTitle: String,
+    val issuer: String = "Acme Global Enterprise Portal",
+    val issueDate: String = "",
+    val recipient: String = "Acme Global Enterprise",
+    val primaryAmount: Double? = null,
+    val liveSystemStatus: String = "Verified in System Database",
+    val securitySignature: String = "",
+    val isSignatureValid: Boolean = true,
+    val details: Map<String, String> = emptyMap(),
+    val rawPayload: String = "",
+    val securityWarnings: List<String> = emptyList()
+)

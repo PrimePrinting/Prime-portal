@@ -15,9 +15,10 @@ import com.example.data.model.*
         QuoteRequestEntity::class,
         LedgerEntryEntity::class,
         ReferralEntity::class,
-        NotificationEntity::class
+        NotificationEntity::class,
+        VerificationRecordEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -29,6 +30,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun ledgerDao(): LedgerDao
     abstract fun referralDao(): ReferralDao
     abstract fun notificationDao(): NotificationDao
+    abstract fun verificationDao(): VerificationDao
 
     companion object {
         @Volatile

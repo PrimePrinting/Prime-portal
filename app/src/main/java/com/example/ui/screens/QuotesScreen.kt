@@ -7,7 +7,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Assignment
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.data.model.QuoteRequestEntity
 import com.example.data.model.QuoteStatus
 
@@ -39,8 +39,8 @@ fun QuotesScreen(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onOpenNewQuoteSheet,
-                icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                text = { Text("Ask For Quotation") },
+                icon = { Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                text = { Text("Ask For Quote", style = MaterialTheme.typography.labelMedium) },
                 modifier = Modifier.testTag("ask_for_quotation_fab")
             )
         }
@@ -53,38 +53,48 @@ fun QuotesScreen(
         ) {
             Surface(
                 color = MaterialTheme.colorScheme.surface,
-                shadowElevation = 2.dp
+                shadowElevation = 1.dp
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Default.Assignment,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(28.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Quotations & Bids",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
-                        )
+                Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "Quotations & Bids",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "Custom pricing & bulk volume discount requests",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        Button(
+                            onClick = onOpenNewQuoteSheet,
+                            shape = RoundedCornerShape(8.dp),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                            modifier = Modifier.height(30.dp)
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(14.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("New Quote", style = MaterialTheme.typography.labelSmall)
+                        }
                     }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Request custom pricing, bulk volume discounts, or engineered item proposals.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
 
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         listOf("ALL", "PENDING", "QUOTED", "APPROVED").forEach { tab ->
                             FilterChip(
                                 selected = selectedFilter == tab,
                                 onClick = { selectedFilter = tab },
-                                label = { Text(tab) }
+                                label = { Text(tab, fontSize = 11.sp) },
+                                modifier = Modifier.height(28.dp)
                             )
                         }
                     }
@@ -93,18 +103,20 @@ fun QuotesScreen(
 
             LazyColumn(
                 modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 if (filteredQuotes.isEmpty()) {
                     item {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(200.dp),
+                                .height(180.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 "No quotation requests found in this category.",
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -112,12 +124,12 @@ fun QuotesScreen(
                 } else {
                     items(filteredQuotes) { quote ->
                         Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 6.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                         ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
+                            Column(modifier = Modifier.padding(12.dp)) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -127,16 +139,16 @@ fun QuotesScreen(
                                         Text(
                                             quote.quoteNumber,
                                             fontWeight = FontWeight.Bold,
-                                            style = MaterialTheme.typography.titleMedium
+                                            style = MaterialTheme.typography.bodyLarge
                                         )
                                         Text(
-                                            "Requested Date: ${quote.requestDate}",
+                                            "Requested: ${quote.requestDate} • Qty: ${quote.targetQuantity} units",
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
                                     Surface(
-                                        shape = RoundedCornerShape(8.dp),
+                                        shape = RoundedCornerShape(6.dp),
                                         color = when (quote.status) {
                                             QuoteStatus.QUOTED -> MaterialTheme.colorScheme.primaryContainer
                                             QuoteStatus.APPROVED -> MaterialTheme.colorScheme.tertiaryContainer
@@ -147,7 +159,8 @@ fun QuotesScreen(
                                             quote.status.name,
                                             style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold,
-                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                            fontSize = 10.sp,
                                             color = when (quote.status) {
                                                 QuoteStatus.QUOTED -> MaterialTheme.colorScheme.onPrimaryContainer
                                                 QuoteStatus.APPROVED -> MaterialTheme.colorScheme.onTertiaryContainer
@@ -157,28 +170,28 @@ fun QuotesScreen(
                                     }
                                 }
 
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text("Category: ${quote.category}", fontWeight = FontWeight.SemiBold)
-                                Text("Target Qty: ${quote.targetQuantity} units", style = MaterialTheme.typography.bodyMedium)
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    quote.details,
+                                    "${quote.category}: ${quote.details}",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 2
                                 )
 
                                 if (quote.quotedPrice != null) {
-                                    Spacer(modifier = Modifier.height(12.dp))
+                                    Spacer(modifier = Modifier.height(8.dp))
                                     Card(
-                                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
+                                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)),
+                                        shape = RoundedCornerShape(8.dp),
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        Column(modifier = Modifier.padding(12.dp)) {
+                                        Column(modifier = Modifier.padding(8.dp)) {
                                             Row(
                                                 modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceBetween
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
                                             ) {
-                                                Text("Sales Quoted Price:", fontWeight = FontWeight.Bold)
+                                                Text("Approved Quote Total:", style = MaterialTheme.typography.labelSmall)
                                                 Text(
                                                     "\$${String.format("%.2f", quote.quotedPrice)}",
                                                     fontWeight = FontWeight.Bold,
@@ -187,7 +200,6 @@ fun QuotesScreen(
                                                 )
                                             }
                                             if (quote.salesNotes != null) {
-                                                Spacer(modifier = Modifier.height(4.dp))
                                                 Text(
                                                     "Sales Note: ${quote.salesNotes}",
                                                     style = MaterialTheme.typography.bodySmall,
@@ -195,16 +207,6 @@ fun QuotesScreen(
                                                 )
                                             }
                                         }
-                                    }
-
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Button(
-                                        onClick = { /* Convert to Order */ },
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        Icon(Icons.Default.CheckCircle, contentDescription = null)
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Text("Accept Quote & Place Order")
                                     }
                                 }
                             }

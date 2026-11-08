@@ -55,48 +55,76 @@ fun OrdersScreen(
         Column(modifier = Modifier.fillMaxSize()) {
             Surface(
                 color = MaterialTheme.colorScheme.surface,
-                shadowElevation = 2.dp
+                shadowElevation = 1.dp
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Orders & Product Catalog",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
+                Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Orders & Products",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
 
-                    TabRow(selectedTabIndex = if (selectedSectionTab == "CATALOG") 0 else 1) {
+                        if (totalCartCount > 0) {
+                            FilledTonalButton(
+                                onClick = onOpenCart,
+                                shape = RoundedCornerShape(8.dp),
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                                modifier = Modifier.height(30.dp)
+                            ) {
+                                Icon(Icons.Default.ShoppingCart, contentDescription = null, modifier = Modifier.size(14.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("$totalCartCount (\$${String.format("%.2f", totalCartValue)})", fontSize = 11.sp)
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    TabRow(
+                        selectedTabIndex = if (selectedSectionTab == "CATALOG") 0 else 1,
+                        modifier = Modifier.height(38.dp)
+                    ) {
                         Tab(
                             selected = selectedSectionTab == "CATALOG",
                             onClick = { selectedSectionTab = "CATALOG" },
-                            text = { Text("Product Catalog") }
+                            text = { Text("Product Catalog (${products.size})", style = MaterialTheme.typography.labelSmall) }
                         )
                         Tab(
                             selected = selectedSectionTab == "HISTORY",
                             onClick = { selectedSectionTab = "HISTORY" },
-                            text = { Text("Order History (${orders.size})") }
+                            text = { Text("Order History (${orders.size})", style = MaterialTheme.typography.labelSmall) }
                         )
                     }
 
                     if (selectedSectionTab == "CATALOG") {
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(6.dp))
                         OutlinedTextField(
                             value = searchQuery,
                             onValueChange = { searchQuery = it },
-                            placeholder = { Text("Search catalog by SKU, name, or material...") },
-                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true
+                            placeholder = { Text("Search catalog by SKU, name, or material...", fontSize = 12.sp) },
+                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(44.dp),
+                            singleLine = true,
+                            shape = RoundedCornerShape(8.dp),
+                            textStyle = LocalTextStyle.current.copy(fontSize = 12.sp)
                         )
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(6.dp))
 
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             items(categories) { category ->
                                 FilterChip(
                                     selected = selectedCategory == category,
                                     onClick = { selectedCategory = category },
-                                    label = { Text(category) }
+                                    label = { Text(category, fontSize = 11.sp) },
+                                    modifier = Modifier.height(28.dp)
                                 )
                             }
                         }
@@ -107,16 +135,17 @@ fun OrdersScreen(
             if (selectedSectionTab == "CATALOG") {
                 LazyColumn(
                     modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 90.dp)
+                    contentPadding = PaddingValues(start = 14.dp, end = 14.dp, top = 8.dp, bottom = 80.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(filteredProducts) { product ->
                         Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 6.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                         ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
+                            Column(modifier = Modifier.padding(12.dp)) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -126,10 +155,10 @@ fun OrdersScreen(
                                         Text(
                                             product.name,
                                             fontWeight = FontWeight.Bold,
-                                            style = MaterialTheme.typography.titleMedium
+                                            style = MaterialTheme.typography.bodyLarge
                                         )
                                         Text(
-                                            "SKU: ${product.sku} | Category: ${product.category}",
+                                            "SKU: ${product.sku} • ${product.category}",
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
@@ -142,14 +171,15 @@ fun OrdersScreen(
                                     )
                                 }
 
-                                Spacer(modifier = Modifier.height(8.dp))
+                                Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     product.description,
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 2
                                 )
 
-                                Spacer(modifier = Modifier.height(12.dp))
+                                Spacer(modifier = Modifier.height(8.dp))
 
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
@@ -157,28 +187,30 @@ fun OrdersScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Surface(
-                                        shape = RoundedCornerShape(8.dp),
+                                        shape = RoundedCornerShape(6.dp),
                                         color = MaterialTheme.colorScheme.surfaceVariant
                                     ) {
                                         Text(
-                                            "In Stock: ${product.stockQuantity} units",
+                                            "Stock: ${product.stockQuantity} ${product.unit}s",
                                             style = MaterialTheme.typography.labelSmall,
-                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                            fontSize = 10.sp
                                         )
                                     }
 
                                     Button(
                                         onClick = { onAddToCart(product) },
-                                        shape = RoundedCornerShape(8.dp),
-                                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                                        shape = RoundedCornerShape(6.dp),
+                                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                                        modifier = Modifier.height(30.dp)
                                     ) {
                                         Icon(
                                             Icons.Default.AddShoppingCart,
                                             contentDescription = null,
-                                            modifier = Modifier.size(16.dp)
+                                            modifier = Modifier.size(14.dp)
                                         )
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Text("Add to Order")
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text("Add to Order", fontSize = 11.sp)
                                     }
                                 }
                             }
@@ -189,16 +221,17 @@ fun OrdersScreen(
                 // Order History
                 LazyColumn(
                     modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(orders) { order ->
                         Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 6.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                         ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
+                            Column(modifier = Modifier.padding(12.dp)) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -207,47 +240,45 @@ fun OrdersScreen(
                                     Text(
                                         "Order ${order.orderNumber}",
                                         fontWeight = FontWeight.Bold,
-                                        style = MaterialTheme.typography.titleMedium
+                                        style = MaterialTheme.typography.bodyLarge
                                     )
                                     Surface(
-                                        shape = RoundedCornerShape(8.dp),
+                                        shape = RoundedCornerShape(6.dp),
                                         color = MaterialTheme.colorScheme.primaryContainer
                                     ) {
                                         Text(
                                             order.status.name,
                                             style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold,
-                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                            fontSize = 10.sp,
                                             color = MaterialTheme.colorScheme.onPrimaryContainer
                                         )
                                     }
                                 }
-                                Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    "Date: ${order.date}",
+                                    "Date: ${order.date} • Ship to: ${order.shippingAddress}",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1
                                 )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(order.itemsSummary, style = MaterialTheme.typography.bodyMedium)
-                                Spacer(modifier = Modifier.height(8.dp))
-                                HorizontalDivider()
-                                Spacer(modifier = Modifier.height(8.dp))
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(order.itemsSummary, style = MaterialTheme.typography.bodySmall, maxLines = 1)
+                                Spacer(modifier = Modifier.height(6.dp))
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                                Spacer(modifier = Modifier.height(6.dp))
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
+                                    Text("Order Total:", style = MaterialTheme.typography.labelMedium)
                                     Text(
-                                        "Total: \$${String.format("%.2f", order.totalAmount)}",
+                                        "\$${String.format("%.2f", order.totalAmount)}",
                                         fontWeight = FontWeight.Bold,
+                                        style = MaterialTheme.typography.titleMedium,
                                         color = MaterialTheme.colorScheme.primary
                                     )
-                                    OutlinedButton(onClick = { /* Reorder */ }) {
-                                        Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
-                                        Spacer(modifier = Modifier.width(4.dp))
-                                        Text("Reorder")
-                                    }
                                 }
                             }
                         }
@@ -256,45 +287,65 @@ fun OrdersScreen(
             }
         }
 
-        // Floating Cart Bar at bottom when items exist
-        if (totalCartCount > 0 && selectedSectionTab == "CATALOG") {
+        // Floating Cart Summary Bar
+        AnimatedVisibility(
+            visible = totalCartCount > 0,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 12.dp, start = 14.dp, end = 14.dp)
+        ) {
             Surface(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .testTag("floating_cart_bar"),
+                onClick = onOpenCart,
                 shape = RoundedCornerShape(16.dp),
                 color = MaterialTheme.colorScheme.primary,
-                shadowElevation = 8.dp
+                shadowElevation = 6.dp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("floating_cart_bar")
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
-                        Text(
-                            "$totalCartCount items in cart",
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.bodyMedium
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.ShoppingCart,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(20.dp)
                         )
-                        Text(
-                            "Total: \$${String.format("%.2f", totalCartValue)}",
-                            color = Color.White.copy(alpha = 0.9f),
-                            style = MaterialTheme.typography.bodySmall
-                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text(
+                                "$totalCartCount item(s) in Order Cart",
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                            Text(
+                                "\$${String.format("%.2f", totalCartValue)} Estimated Subtotal",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f),
+                                fontSize = 10.sp
+                            )
+                        }
                     }
-
                     Button(
                         onClick = onOpenCart,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                        shape = RoundedCornerShape(12.dp)
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimary),
+                        shape = RoundedCornerShape(8.dp),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                        modifier = Modifier.height(28.dp)
                     ) {
-                        Text("View Cart & Checkout", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                        Text(
+                            "Review & Ship",
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 11.sp
+                        )
                     }
                 }
             }

@@ -1,6 +1,7 @@
 package com.example.ui.screens
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,19 +13,24 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.data.model.InvoiceEntity
 import com.example.data.model.InvoiceStatus
+import com.example.util.QrCodeGenerator
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InvoicesScreen(
     invoices: List<InvoiceEntity>,
     onPayInvoice: (InvoiceEntity) -> Unit,
-    onRevertPayment: ((InvoiceEntity) -> Unit)? = null
+    onRevertPayment: ((InvoiceEntity) -> Unit)? = null,
+    onOpenGenerateInvoiceDialog: () -> Unit = {},
+    onSimulateInvoiceNotification: () -> Unit = {}
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilterTab by remember { mutableStateOf("UNPAID") }
@@ -50,73 +56,86 @@ fun InvoicesScreen(
             .fillMaxSize()
             .testTag("invoices_screen")
     ) {
-        // Header
+        // Compact Header
         Surface(
             color = MaterialTheme.colorScheme.surface,
-            shadowElevation = 2.dp
+            shadowElevation = 1.dp
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Invoices & Payments",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Balance summary card
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth()
+            Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
+                // Top Row: Title + Total Balance Tag + New Invoice Button
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text("Total Outstanding Balance", style = MaterialTheme.typography.bodySmall)
-                            Text(
-                                "\$${String.format("%.2f", totalUnpaid)}",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                        Icon(
-                            Icons.AutoMirrored.Filled.ReceiptLong,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(36.dp)
+                    Column {
+                        Text(
+                            text = "Invoices & Payments",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
                         )
+                        Text(
+                            text = "Outstanding: \$${String.format("%.2f", totalUnpaid)}",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        FilledTonalIconButton(
+                            onClick = onSimulateInvoiceNotification,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .testTag("simulate_invoice_notif_button")
+                        ) {
+                            Icon(Icons.Default.Bolt, contentDescription = "Test Alert", modifier = Modifier.size(16.dp))
+                        }
+
+                        Button(
+                            onClick = onOpenGenerateInvoiceDialog,
+                            shape = RoundedCornerShape(8.dp),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                            modifier = Modifier
+                                .height(32.dp)
+                                .testTag("open_generate_invoice_button")
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(14.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("New", style = MaterialTheme.typography.labelSmall)
+                        }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
+                // Search & Filters Row
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    placeholder = { Text("Search by invoice # or items...") },
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    placeholder = { Text("Search by invoice # or items...", fontSize = 12.sp) },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(44.dp),
+                    singleLine = true,
+                    shape = RoundedCornerShape(8.dp),
+                    textStyle = LocalTextStyle.current.copy(fontSize = 12.sp)
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
-                // Filter Tabs
-                ScrollableTabRow(
-                    selectedTabIndex = listOf("UNPAID", "OVERDUE", "PAID", "ALL").indexOf(selectedFilterTab),
-                    edgePadding = 0.dp
+                // Filter Tabs as compact chips
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     listOf("UNPAID", "OVERDUE", "PAID", "ALL").forEach { tab ->
-                        Tab(
+                        FilterChip(
                             selected = selectedFilterTab == tab,
                             onClick = { selectedFilterTab = tab },
-                            text = { Text(tab) }
+                            label = { Text(tab, style = MaterialTheme.typography.labelSmall, fontSize = 11.sp) },
+                            modifier = Modifier.height(28.dp)
                         )
                     }
                 }
@@ -127,18 +146,20 @@ fun InvoicesScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
+            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             if (filteredInvoices.isEmpty()) {
                 item {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(200.dp),
+                            .height(180.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             "No invoices match your criteria.",
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -146,12 +167,12 @@ fun InvoicesScreen(
             } else {
                 items(filteredInvoices) { invoice ->
                     Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 6.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
+                        Column(modifier = Modifier.padding(12.dp)) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -161,16 +182,16 @@ fun InvoicesScreen(
                                     Text(
                                         invoice.invoiceNumber,
                                         fontWeight = FontWeight.Bold,
-                                        style = MaterialTheme.typography.titleMedium
+                                        style = MaterialTheme.typography.bodyLarge
                                     )
                                     Text(
-                                        "Issue Date: ${invoice.issueDate} | Due: ${invoice.dueDate}",
+                                        "Due: ${invoice.dueDate} • Issued: ${invoice.issueDate}",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                                 Surface(
-                                    shape = RoundedCornerShape(8.dp),
+                                    shape = RoundedCornerShape(6.dp),
                                     color = when (invoice.status) {
                                         InvoiceStatus.PAID -> MaterialTheme.colorScheme.tertiaryContainer
                                         InvoiceStatus.OVERDUE -> MaterialTheme.colorScheme.errorContainer
@@ -181,7 +202,8 @@ fun InvoicesScreen(
                                         invoice.status.name,
                                         style = MaterialTheme.typography.labelSmall,
                                         fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        fontSize = 10.sp,
                                         color = when (invoice.status) {
                                             InvoiceStatus.PAID -> MaterialTheme.colorScheme.onTertiaryContainer
                                             InvoiceStatus.OVERDUE -> MaterialTheme.colorScheme.onErrorContainer
@@ -191,23 +213,17 @@ fun InvoicesScreen(
                                 }
                             }
 
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 invoice.itemsSummary,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1
                             )
-                            if (invoice.description.isNotEmpty()) {
-                                Text(
-                                    invoice.description,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
 
-                            Spacer(modifier = Modifier.height(12.dp))
-                            HorizontalDivider()
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(6.dp))
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                            Spacer(modifier = Modifier.height(6.dp))
 
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -223,38 +239,45 @@ fun InvoicesScreen(
                                     )
                                     if (invoice.paymentDate != null) {
                                         Text(
-                                            "Paid on ${invoice.paymentDate} (${invoice.paymentMethod})",
+                                            "Paid on ${invoice.paymentDate}",
                                             style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.tertiary
+                                            color = MaterialTheme.colorScheme.tertiary,
+                                            fontSize = 10.sp
                                         )
                                     }
                                 }
 
-                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                     OutlinedButton(
                                         onClick = { viewPdfInvoice = invoice },
-                                        contentPadding = PaddingValues(horizontal = 12.dp)
+                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                        shape = RoundedCornerShape(6.dp),
+                                        modifier = Modifier.height(30.dp)
                                     ) {
-                                        Icon(Icons.Default.PictureAsPdf, contentDescription = null, modifier = Modifier.size(16.dp))
-                                        Spacer(modifier = Modifier.width(4.dp))
-                                        Text("PDF")
+                                        Icon(Icons.Default.PictureAsPdf, contentDescription = null, modifier = Modifier.size(13.dp))
+                                        Spacer(modifier = Modifier.width(3.dp))
+                                        Text("PDF", style = MaterialTheme.typography.labelSmall, fontSize = 11.sp)
                                     }
 
                                     if (invoice.status == InvoiceStatus.UNPAID || invoice.status == InvoiceStatus.OVERDUE) {
                                         Button(
                                             onClick = { onPayInvoice(invoice) },
-                                            contentPadding = PaddingValues(horizontal = 16.dp)
+                                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                                            shape = RoundedCornerShape(6.dp),
+                                            modifier = Modifier.height(30.dp)
                                         ) {
-                                            Text("Pay Now")
+                                            Text("Pay", fontSize = 11.sp)
                                         }
                                     } else if (invoice.status == InvoiceStatus.PAID && onRevertPayment != null) {
                                         OutlinedButton(
                                             onClick = { onRevertPayment(invoice) },
-                                            contentPadding = PaddingValues(horizontal = 12.dp)
+                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                            shape = RoundedCornerShape(6.dp),
+                                            modifier = Modifier.height(30.dp)
                                         ) {
-                                            Icon(Icons.Default.Undo, contentDescription = null, modifier = Modifier.size(16.dp))
-                                            Spacer(modifier = Modifier.width(4.dp))
-                                            Text("Revert Payment")
+                                            Icon(Icons.Default.Undo, contentDescription = null, modifier = Modifier.size(13.dp))
+                                            Spacer(modifier = Modifier.width(3.dp))
+                                            Text("Revert", style = MaterialTheme.typography.labelSmall, fontSize = 11.sp)
                                         }
                                     }
                                 }
@@ -277,30 +300,30 @@ fun InvoicesScreen(
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
-                Column(modifier = Modifier.padding(20.dp)) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Official Invoice PDF", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                        Text("Invoice Preview", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
                         IconButton(onClick = { viewPdfInvoice = null }) {
                             Icon(Icons.Default.Close, contentDescription = "Close")
                         }
                     }
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                    Text("Invoice No: ${inv.invoiceNumber}", fontWeight = FontWeight.SemiBold)
-                    Text("Issue Date: ${inv.issueDate}")
-                    Text("Due Date: ${inv.dueDate}")
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text("Itemized Breakdown:", fontWeight = FontWeight.Bold)
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
+                    Text("Invoice No: ${inv.invoiceNumber}", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
+                    Text("Issue Date: ${inv.issueDate} • Due: ${inv.dueDate}", style = MaterialTheme.typography.bodySmall)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Itemized Breakdown:", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodySmall)
                     Text(inv.itemsSummary, style = MaterialTheme.typography.bodySmall)
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Tax:")
-                        Text("\$${String.format("%.2f", inv.tax)}")
+                        Text("Tax:", style = MaterialTheme.typography.bodySmall)
+                        Text("\$${String.format("%.2f", inv.tax)}", style = MaterialTheme.typography.bodySmall)
                     }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -309,14 +332,59 @@ fun InvoicesScreen(
                         Text("Grand Total:", fontWeight = FontWeight.Bold)
                         Text("\$${String.format("%.2f", inv.amount)}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                     }
-                    Spacer(modifier = Modifier.height(20.dp))
+
+                    // Digital Authenticity QR Code Stamp
+                    val qrPayload = remember(inv) {
+                        QrCodeGenerator.createPayload("INVOICE", inv.invoiceNumber, inv.issueDate, inv.amount.toString())
+                    }
+                    val qrBitmap = remember(qrPayload) {
+                        QrCodeGenerator.generateQrBitmap(qrPayload, sizePx = 256)
+                    }
+
+                    if (qrBitmap != null) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f), RoundedCornerShape(10.dp))
+                                .padding(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Image(
+                                bitmap = qrBitmap.asImageBitmap(),
+                                contentDescription = "Verification QR Code",
+                                modifier = Modifier
+                                    .size(60.dp)
+                                    .background(androidx.compose.ui.graphics.Color.White, RoundedCornerShape(4.dp))
+                                    .padding(2.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    "Digital Authenticity Stamp",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    "Cryptographically certified. Scan via Document Verification Scanner to verify.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
                     Button(
                         onClick = { viewPdfInvoice = null },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
                     ) {
-                        Icon(Icons.Default.Download, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Download PDF to Device")
+                        Icon(Icons.Default.Download, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Download PDF")
                     }
                 }
             }

@@ -16,6 +16,19 @@ class ExampleRobolectricTest {
   fun `read string from context`() {
     val context = ApplicationProvider.getApplicationContext<Context>()
     val appName = context.getString(R.string.app_name)
-    assertEquals("My Application", appName)
+    assertEquals("Customer Portal", appName)
+  }
+
+  @Test
+  fun `notification channels created successfully`() {
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    com.example.util.NotificationHelper.createNotificationChannels(context)
+    val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+    val deliveryChannel = notificationManager.getNotificationChannel(com.example.util.NotificationHelper.CHANNEL_DELIVERIES_ID)
+    val invoiceChannel = notificationManager.getNotificationChannel(com.example.util.NotificationHelper.CHANNEL_INVOICES_ID)
+    org.junit.Assert.assertNotNull(deliveryChannel)
+    org.junit.Assert.assertNotNull(invoiceChannel)
+    assertEquals("Delivery Updates", deliveryChannel.name)
+    assertEquals("Invoices & Billing", invoiceChannel.name)
   }
 }

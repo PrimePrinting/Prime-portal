@@ -85,7 +85,13 @@ class PortalRepository(private val db: AppDatabase) {
         }
     }
 
-    suspend fun createOrder(cartItems: List<CartItem>, shippingAddress: String): OrderEntity {
+    data class OrderPlacementResult(
+        val order: OrderEntity,
+        val delivery: DeliveryEntity,
+        val invoice: InvoiceEntity
+    )
+
+    suspend fun createOrder(cartItems: List<CartItem>, shippingAddress: String): OrderPlacementResult {
         val today = "2026-08-09"
         val totalAmount = cartItems.sumOf { it.product.unitPrice * it.quantity }
         val orderNo = "ORD-" + (1000..9999).random()
@@ -99,49 +105,137 @@ class PortalRepository(private val db: AppDatabase) {
             itemsSummary = summary,
             shippingAddress = shippingAddress
         )
-        val orderId = db.orderDao().insertOrder(order)
+        db.orderDao().insertOrder(order)
 
         // Create initial delivery entry
-        db.deliveryDao().insertDelivery(
-            DeliveryEntity(
-                orderId = orderNo,
-                trackingNumber = "TRK-" + (100000..999999).random(),
-                status = DeliveryStatus.PROCESSING,
-                driverName = "David Miller",
-                driverPhone = "+1 (555) 382-9102",
-                vehicleNo = "TRK-882",
-                estimatedArrival = "Tomorrow, 2:00 PM",
-                deliveryAddress = shippingAddress,
-                currentStep = 1
-            )
+        val delivery = DeliveryEntity(
+            orderId = orderNo,
+            trackingNumber = "TRK-" + (100000..999999).random(),
+            status = DeliveryStatus.PROCESSING,
+            driverName = "David Miller",
+            driverPhone = "+1 (555) 382-9102",
+            vehicleNo = "TRK-882",
+            estimatedArrival = "Tomorrow, 2:00 PM",
+            deliveryAddress = shippingAddress,
+            currentStep = 1
         )
+        val deliveryId = db.deliveryDao().insertDelivery(delivery)
+        val insertedDelivery = delivery.copy(id = deliveryId)
 
         // Create Invoice for Order
         val invoiceNo = "INV-2026-" + (300..999).random()
-        db.invoiceDao().insertInvoice(
-            InvoiceEntity(
-                invoiceNumber = invoiceNo,
-                issueDate = today,
-                dueDate = "2026-08-23",
-                amount = totalAmount,
-                tax = totalAmount * 0.08,
-                status = InvoiceStatus.UNPAID,
-                itemsSummary = summary,
-                description = "Invoice generated for Order $orderNo"
-            )
+        val invoice = InvoiceEntity(
+            invoiceNumber = invoiceNo,
+            issueDate = today,
+            dueDate = "2026-08-23",
+            amount = totalAmount,
+            tax = totalAmount * 0.08,
+            status = InvoiceStatus.UNPAID,
+            itemsSummary = summary,
+            description = "Invoice generated for Order $orderNo"
         )
+        val invoiceId = db.invoiceDao().insertInvoice(invoice)
+        val insertedInvoice = invoice.copy(id = invoiceId)
 
         // Add Notification
         db.notificationDao().insertNotification(
             NotificationEntity(
-                title = "Order Confirmed!",
-                message = "Order $orderNo (\$${String.format("%.2f", totalAmount)}) has been placed successfully.",
+                title = "Order Confirmed & Invoiced",
+                message = "Order $orderNo (\$${String.format("%.2f", totalAmount)}) has been placed. Invoice $invoiceNo generated.",
                 timestamp = "Just now",
-                category = NotificationCategory.DELIVERY
+                category = NotificationCategory.DELIVERY,
+                actionTargetId = orderNo
             )
         )
 
-        return order
+        return OrderPlacementResult(order, insertedDelivery, insertedInvoice)
+    }
+
+    suspend fun updateDeliveryStatus(
+        deliveryId: Long,
+        newStatus: DeliveryStatus,
+        newStep: Int,
+        newEta: String? = null
+    ): DeliveryEntity? {
+        val existing = db.deliveryDao().getDeliveryById(deliveryId) ?: return null
+        val updated = existing.copy(
+            status = newStatus,
+            currentStep = newStep,
+            estimatedArrival = newEta ?: existing.estimatedArrival
+        )
+        db.deliveryDao().updateDelivery(updated)
+
+        val statusLabel = newStatus.name.replace("_", " ")
+        db.notificationDao().insertNotification(
+            NotificationEntity(
+                title = "Delivery Status: $statusLabel",
+                message = "Order ${updated.orderId} is now $statusLabel. ETA: ${updated.estimatedArrival}.",
+                timestamp = "Just now",
+                category = NotificationCategory.DELIVERY,
+                actionTargetId = updated.orderId
+            )
+        )
+        return updated
+    }
+
+    suspend fun advanceDeliveryStatus(delivery: DeliveryEntity): DeliveryEntity? {
+        val (nextStatus, nextStep, nextEta) = when (delivery.status) {
+            DeliveryStatus.PROCESSING -> Triple(DeliveryStatus.SHIPPED, 2, "Tomorrow, 10:00 AM")
+            DeliveryStatus.SHIPPED -> Triple(DeliveryStatus.OUT_FOR_DELIVERY, 3, "Today, 3:30 PM")
+            DeliveryStatus.OUT_FOR_DELIVERY -> Triple(DeliveryStatus.DELIVERED, 4, "Delivered Just Now")
+            DeliveryStatus.DELIVERED -> Triple(DeliveryStatus.PROCESSING, 1, "Estimated 2 Business Days")
+        }
+        return updateDeliveryStatus(delivery.id, nextStatus, nextStep, nextEta)
+    }
+
+    suspend fun generateNewInvoice(
+        amount: Double,
+        dueDate: String,
+        itemsSummary: String,
+        description: String = ""
+    ): InvoiceEntity {
+        val today = "2026-08-09"
+        val invoiceNo = "INV-2026-" + (400..999).random()
+        val invoice = InvoiceEntity(
+            invoiceNumber = invoiceNo,
+            issueDate = today,
+            dueDate = dueDate,
+            amount = amount,
+            tax = amount * 0.08,
+            status = InvoiceStatus.UNPAID,
+            itemsSummary = itemsSummary,
+            description = description.ifEmpty { "Periodic billing invoice generated." }
+        )
+        val id = db.invoiceDao().insertInvoice(invoice)
+        val createdInvoice = invoice.copy(id = id)
+
+        // Add to ledger
+        val currentLedger = db.ledgerDao().getAllLedgerEntries().first()
+        val currentBalance = currentLedger.firstOrNull()?.runningBalance ?: 1240.0
+        val newBalance = currentBalance + amount
+        db.ledgerDao().insertLedgerEntry(
+            LedgerEntryEntity(
+                date = today,
+                referenceNo = invoiceNo,
+                description = invoice.description,
+                type = LedgerType.INVOICE,
+                amount = amount,
+                runningBalance = newBalance
+            )
+        )
+
+        // Add to notifications
+        db.notificationDao().insertNotification(
+            NotificationEntity(
+                title = "New Invoice Generated",
+                message = "Invoice $invoiceNo for \$${String.format("%.2f", amount)} was generated. Due date: $dueDate.",
+                timestamp = "Just now",
+                category = NotificationCategory.INVOICE,
+                actionTargetId = invoiceNo
+            )
+        )
+
+        return createdInvoice
     }
 
     suspend fun createQuoteRequest(category: String, details: String, quantity: Int) {

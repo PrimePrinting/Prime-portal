@@ -10,15 +10,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -51,79 +48,71 @@ fun HomeScreen(
         modifier = Modifier
             .fillMaxSize()
             .testTag("home_screen"),
-        contentPadding = PaddingValues(bottom = 80.dp)
+        contentPadding = PaddingValues(start = 14.dp, end = 14.dp, top = 8.dp, bottom = 48.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        // Top Welcome Header (Clean Light Professional Style)
+        // Compact Hero Header Card
         item {
-            Surface(
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, top = 2.dp, bottom = 10.dp),
-                shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 2.dp,
-                shadowElevation = 1.dp
+                    .clickable { onNavigateToScreen(PortalScreen.PROFILE) },
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp)
-                ) {
+                Column(modifier = Modifier.padding(12.dp)) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onNavigateToScreen(PortalScreen.PROFILE) },
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column {
-                            Surface(
-                                shape = RoundedCornerShape(20.dp),
-                                color = MaterialTheme.colorScheme.primaryContainer,
-                                modifier = Modifier.clickable { onNavigateToScreen(PortalScreen.PROFILE) }
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.WorkspacePremium,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(14.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text(
-                                        text = customerInfo.tier,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(6.dp))
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = customerInfo.companyName,
-                                style = MaterialTheme.typography.titleLarge,
+                                style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = "Account ID: ${customerInfo.customerCode}",
+                                text = "Code: ${customerInfo.customerCode} • Tier: ${customerInfo.tier}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
+
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.WorkspacePremium,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = customerInfo.tier,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                    // Dashboard Banner Graphic
+                    // Compact Banner Graphic
                     Card(
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(10.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(110.dp)
+                            .height(72.dp)
                     ) {
                         Box(modifier = Modifier.fillMaxSize()) {
                             Image(
@@ -135,20 +124,20 @@ fun HomeScreen(
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color.Black.copy(alpha = 0.35f))
-                                    .padding(16.dp)
+                                    .background(Color.Black.copy(alpha = 0.4f))
+                                    .padding(horizontal = 12.dp, vertical = 8.dp)
                             ) {
                                 Column(modifier = Modifier.align(Alignment.BottomStart)) {
                                     Text(
                                         "Enterprise B2B Portal",
                                         fontWeight = FontWeight.Bold,
                                         color = Color.White,
-                                        style = MaterialTheme.typography.titleMedium
+                                        style = MaterialTheme.typography.labelLarge
                                     )
                                     Text(
-                                        "Real-time tracking, quotes, statements & payments",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = Color.White.copy(alpha = 0.9f)
+                                        "Live tracking, invoices, orders & statements",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color.White.copy(alpha = 0.85f)
                                     )
                                 }
                             }
@@ -160,24 +149,24 @@ fun HomeScreen(
 
         // Quick KPI Metric Cards
         item {
-            Column(modifier = Modifier.padding(20.dp)) {
+            Column {
                 Text(
-                    text = "Account Summary",
-                    style = MaterialTheme.typography.titleMedium,
+                    text = "Account Snapshot",
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
                 LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     item {
                         KpiCard(
                             title = "Unpaid Invoices",
                             value = "\$${String.format("%.2f", totalUnpaidAmount)}",
-                            subtitle = "$overdueCount Overdue",
+                            subtitle = if (overdueCount > 0) "$overdueCount Overdue" else "Up to date",
                             icon = Icons.AutoMirrored.Filled.ReceiptLong,
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f),
                             contentColor = MaterialTheme.colorScheme.onErrorContainer,
                             onClick = { onNavigateToScreen(PortalScreen.INVOICES) }
                         )
@@ -188,7 +177,7 @@ fun HomeScreen(
                             value = "$activeDeliveriesCount Shipments",
                             subtitle = "Real-time Tracking",
                             icon = Icons.Default.LocalShipping,
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
                             contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                             onClick = { onNavigateToScreen(PortalScreen.DELIVERIES) }
                         )
@@ -199,7 +188,7 @@ fun HomeScreen(
                             value = "\$${String.format("%.2f", customerInfo.totalReferralEarned)}",
                             subtitle = "Available Rewards",
                             icon = Icons.Default.CardGiftcard,
-                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                            containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.7f),
                             contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
                             onClick = { onNavigateToScreen(PortalScreen.REFERRALS) }
                         )
@@ -210,17 +199,17 @@ fun HomeScreen(
 
         // Quick Shortcuts
         item {
-            Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+            Column {
                 Text(
                     text = "Quick Actions",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     QuickActionTile(
                         title = "Pay Invoices",
@@ -242,11 +231,11 @@ fun HomeScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     QuickActionTile(
                         title = "Track Shipments",
@@ -255,7 +244,7 @@ fun HomeScreen(
                         onClick = { onNavigateToScreen(PortalScreen.DELIVERIES) }
                     )
                     QuickActionTile(
-                        title = "Refer Business",
+                        title = "Refer Partner",
                         icon = Icons.Default.CardGiftcard,
                         modifier = Modifier.weight(1f),
                         onClick = { onNavigateToScreen(PortalScreen.REFERRALS) }
@@ -267,43 +256,106 @@ fun HomeScreen(
                         onClick = { onNavigateToScreen(PortalScreen.STATEMENTS) }
                     )
                 }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Document Verification Banner
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onNavigateToScreen(PortalScreen.VERIFICATION) }
+                        .testTag("home_verification_banner"),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(34.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Default.QrCodeScanner,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Verify Document Authenticity",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "Scan QR codes on invoices & delivery slips to verify official status",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Default.ChevronRight,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
             }
         }
 
         // Action Needed / Pending Invoices Section
         item {
-            Column(modifier = Modifier.padding(20.dp)) {
+            Column {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Unpaid Invoices Needing Attention",
-                        style = MaterialTheme.typography.titleMedium,
+                        text = "Unpaid Invoices (${unpaidInvoices.size})",
+                        style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold
                     )
-                    TextButton(onClick = { onNavigateToScreen(PortalScreen.INVOICES) }) {
-                        Text("View All")
+                    TextButton(
+                        onClick = { onNavigateToScreen(PortalScreen.INVOICES) },
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
+                    ) {
+                        Text("View All", style = MaterialTheme.typography.labelMedium)
                     }
                 }
 
                 if (unpaidInvoices.isEmpty()) {
                     Card(
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
+                        shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Row(
-                            modifier = Modifier.padding(16.dp),
+                            modifier = Modifier.padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
                                 Icons.Default.CheckCircle,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.tertiary
+                                tint = MaterialTheme.colorScheme.tertiary,
+                                modifier = Modifier.size(20.dp)
                             )
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text("All invoices are fully paid! Your account is in great standing.")
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                "All invoices are fully settled! Account is in good standing.",
+                                style = MaterialTheme.typography.bodySmall
+                            )
                         }
                     }
                 } else {
@@ -311,13 +363,14 @@ fun HomeScreen(
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 4.dp),
+                                .padding(vertical = 3.dp),
+                            shape = RoundedCornerShape(12.dp),
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                         ) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(16.dp),
+                                    .padding(horizontal = 12.dp, vertical = 10.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -326,33 +379,29 @@ fun HomeScreen(
                                         Text(
                                             invoice.invoiceNumber,
                                             fontWeight = FontWeight.Bold,
-                                            style = MaterialTheme.typography.bodyLarge
+                                            style = MaterialTheme.typography.bodyMedium
                                         )
-                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Spacer(modifier = Modifier.width(6.dp))
                                         Surface(
-                                            shape = RoundedCornerShape(8.dp),
+                                            shape = RoundedCornerShape(6.dp),
                                             color = if (invoice.status == InvoiceStatus.OVERDUE) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.tertiaryContainer
                                         ) {
                                             Text(
                                                 text = invoice.status.name,
                                                 style = MaterialTheme.typography.labelSmall,
-                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
                                                 color = if (invoice.status == InvoiceStatus.OVERDUE) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onTertiaryContainer,
-                                                fontWeight = FontWeight.Bold
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 10.sp
                                             )
                                         }
                                     }
-                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Spacer(modifier = Modifier.height(2.dp))
                                     Text(
-                                        "Due Date: ${invoice.dueDate}",
+                                        "Due: ${invoice.dueDate} • ${invoice.itemsSummary}",
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    Text(
-                                        invoice.itemsSummary,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        maxLines = 1,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1
                                     )
                                 }
 
@@ -360,16 +409,17 @@ fun HomeScreen(
                                     Text(
                                         "\$${String.format("%.2f", invoice.amount)}",
                                         fontWeight = FontWeight.Bold,
-                                        style = MaterialTheme.typography.titleMedium,
+                                        style = MaterialTheme.typography.bodyLarge,
                                         color = MaterialTheme.colorScheme.primary
                                     )
-                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Spacer(modifier = Modifier.height(3.dp))
                                     Button(
                                         onClick = { onPayInvoice(invoice) },
-                                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-                                        shape = RoundedCornerShape(8.dp)
+                                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                                        shape = RoundedCornerShape(6.dp),
+                                        modifier = Modifier.height(30.dp)
                                     ) {
-                                        Text("Pay Now", fontSize = 12.sp)
+                                        Text("Pay", fontSize = 11.sp)
                                     }
                                 }
                             }
@@ -394,17 +444,15 @@ fun KpiCard(
     Card(
         onClick = onClick,
         colors = CardDefaults.cardColors(containerColor = containerColor),
-        shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.width(160.dp)
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.width(135.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Icon(imageVector = icon, contentDescription = null, tint = contentColor)
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(title, style = MaterialTheme.typography.labelMedium, color = contentColor.copy(alpha = 0.8f))
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = contentColor)
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(subtitle, style = MaterialTheme.typography.labelSmall, color = contentColor.copy(alpha = 0.7f))
+        Column(modifier = Modifier.padding(10.dp)) {
+            Icon(imageVector = icon, contentDescription = null, tint = contentColor, modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(title, style = MaterialTheme.typography.labelSmall, color = contentColor.copy(alpha = 0.85f), fontSize = 10.sp)
+            Text(value, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = contentColor)
+            Text(subtitle, style = MaterialTheme.typography.labelSmall, color = contentColor.copy(alpha = 0.75f), fontSize = 10.sp)
         }
     }
 }
@@ -418,21 +466,21 @@ fun QuickActionTile(
 ) {
     Surface(
         onClick = onClick,
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        shape = RoundedCornerShape(10.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
         modifier = modifier
     ) {
         Column(
-            modifier = Modifier.padding(vertical = 14.dp, horizontal = 8.dp),
+            modifier = Modifier.padding(vertical = 10.dp, horizontal = 4.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = title,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(26.dp)
+                modifier = Modifier.size(22.dp)
             )
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 title,
                 style = MaterialTheme.typography.labelSmall,

@@ -34,6 +34,9 @@ interface DeliveryDao {
     @Query("SELECT * FROM deliveries ORDER BY id DESC")
     fun getAllDeliveries(): Flow<List<DeliveryEntity>>
 
+    @Query("SELECT * FROM deliveries WHERE id = :id")
+    suspend fun getDeliveryById(id: Long): DeliveryEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertDelivery(delivery: DeliveryEntity): Long
 
@@ -124,3 +127,16 @@ interface NotificationDao {
     @Query("UPDATE notifications SET isRead = 1")
     suspend fun markAllAsRead()
 }
+
+@Dao
+interface VerificationDao {
+    @Query("SELECT * FROM document_verifications ORDER BY id DESC")
+    fun getAllVerifications(): Flow<List<VerificationRecordEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertVerification(record: VerificationRecordEntity): Long
+
+    @Query("DELETE FROM document_verifications")
+    suspend fun clearHistory()
+}
+
